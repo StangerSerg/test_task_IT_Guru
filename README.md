@@ -12,4 +12,5 @@ docker-compose up -d
 
 ### API Документация
 После запуска сервера документация доступна по URL:
+
 Swagger UI (интерактивная): http://localhost:8001/docs
