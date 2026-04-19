@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import routers
+from app.routers import router
 
 app = FastAPI(title="Orders handling")
 
@@ -14,4 +14,4 @@ app.add_middleware(
 )
 
 # Подключаем роутер
-app.include_router(routers)
+app.include_router(router)

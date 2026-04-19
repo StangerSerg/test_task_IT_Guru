@@ -6,9 +6,8 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         DateTime,
                         text,
-                        CheckConstraint,
                         )
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import declarative_base
 
 
 Base = declarative_base()
@@ -25,6 +24,9 @@ class AddItemResponse(BaseModel):
     order_item_id: int | None
 
 
+
+
+
 class GoodsCategory(Base):
     __tablename__ = 'goods_categories'
 
@@ -33,28 +35,15 @@ class GoodsCategory(Base):
     parent_id = Column(Integer, ForeignKey('goods_categories.id'))
     root_category_id = Column(Integer, ForeignKey('goods_categories.id'))
 
-    parent = relationship("GoodsCategory", remote_side=[id], foreign_keys=[parent_id])
-    root_category = relationship("GoodsCategory", remote_side=[id], foreign_keys=[root_category_id])
-    children = relationship("GoodsCategory", back_populates="parent")
-    goods = relationship("Goods", back_populates="category")
-
 
 class Goods(Base):
     __tablename__ = 'goods'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
-    stock_quantity = Column(Integer, nullable=False, server_default='0')
-    price = Column(Numeric(15, 2), nullable=False, server_default='0')
+    stock_quantity = Column(Integer, nullable=False, default=0)
+    price = Column(Numeric(15, 2), nullable=False, default=0)
     category_id = Column(Integer, ForeignKey('goods_categories.id'))
-
-    category = relationship("GoodsCategory", back_populates="goods")
-    order_items = relationship("OrderGoods", back_populates="goods")
-
-    __table_args__ = (
-        CheckConstraint('stock_quantity >= 0', name='check_stock_positive'),
-        CheckConstraint('price >= 0', name='check_price_positive'),
-    )
 
 
 class Client(Base):
@@ -64,8 +53,6 @@ class Client(Base):
     name = Column(String(100), nullable=False)
     address = Column(String(255), nullable=False)
 
-    orders = relationship("ClientOrder", back_populates="client")
-
 
 class ClientOrder(Base):
     __tablename__ = 'client_orders'
@@ -73,10 +60,7 @@ class ClientOrder(Base):
     id = Column(Integer, primary_key=True)
     number = Column(String(100), nullable=False, unique=True)
     client_id = Column(Integer, ForeignKey('clients.id'))
-    status = Column(String(20), nullable=False, server_default='pending')
-
-    client = relationship("Client", back_populates="orders")
-    order_goods = relationship("OrderGoods", back_populates="order", cascade="all, delete-orphan")
+    status = Column(String(20), nullable=False, default='pending')
 
 
 class OrderGoods(Base):
@@ -86,12 +70,5 @@ class OrderGoods(Base):
     created_at = Column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     client_order_id = Column(Integer, ForeignKey('client_orders.id'))
     goods_id = Column(Integer, ForeignKey('goods.id'))
-    order_price = Column(Numeric(15, 2), nullable=False)
+    order_price = Column(Numeric(15, 2), nullable=False)  # цена на момент заказа
     order_quantity = Column(Integer, nullable=False)
-
-    order = relationship("ClientOrder", back_populates="order_goods")
-    goods = relationship("Goods", back_populates="order_items")
-
-    __table_args__ = (
-        CheckConstraint('order_quantity > 0', name='check_quantity_positive'),
-    )
