@@ -40,7 +40,7 @@ async def add_item_to_order(
     if new_quantity > goods.stock_quantity:
         raise ValueError(f"Не хватает товара. Доступно: {goods.stock_quantity}")
 
-    # Добавляем или обновляем
+    # Добавляем или увеличиваем количество
     if order_item:
         order_item.order_quantity = new_quantity
     else:
@@ -54,6 +54,7 @@ async def add_item_to_order(
         await db.flush()
         return new_item.id
 
+    # Уменьшаем остаток на складе
     goods.stock_quantity -= quantity
     await db.flush()
 
